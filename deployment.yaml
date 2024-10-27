@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loan
+  template:
+    metadata:
+      labels:
+        app: loan
+    spec:
+      # serviceAccountName: ksa-cloud-sql
+      # nodeSelector:
+      #   "kubernetes.io/os": linux
+      containers:
+        - name: requests
+          image: xxxxxx
+          ports:
+            - containerPort: 9977
+              name: requests-port
+          env:
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name:  bwongo-production-secret
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name:  bwongo-production-secret
+                  key: password
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name:  bwongo-production-secret
+                  key: database
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name:  bwongo-production-secret
+                  key: host
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: requests
+  # annotations:
+  #   cloud.google.com/backend-config: '{"default": "requests-backendconfig"}'
+spec:
+  selector:
+    app: requests
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8090
+      nodePort: 32198
+
